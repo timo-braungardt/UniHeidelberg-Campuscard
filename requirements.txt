@@ -1,0 +1,4 @@
+requests
+pandas
+html5lib
+argparse
