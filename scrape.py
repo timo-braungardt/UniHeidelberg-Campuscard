@@ -47,7 +47,9 @@ def logout(session):
 
 
 def getTableFromFile(path = "output.csv"):
-    return pandas.read_csv(path)
+    table = pandas.read_csv(path)
+    table['Datum/Zeit'] = pandas.to_datetime(table['Datum/Zeit'])
+    return table
 
 
 def saveTableToFile(table, path = "output.csv"):
@@ -88,6 +90,8 @@ def calculateStatistics(table):
     print(f"times buffet: {times_buffet}")
     print(f"times daily dish: {times_day}")
     print(f"pages printed: {times_printed}")
+
+    print(f"days used: {(table.iloc[0]['Datum/Zeit'] - table.iloc[-1]['Datum/Zeit']).days}")
 
 
 def fetch(should_save):
