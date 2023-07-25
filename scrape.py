@@ -1,10 +1,11 @@
 import argparse
 import requests
 import pandas
+import re
+
 
 def cleanupTableNamesAndValues(table):
     table = table.rename(columns={"Datum/Zeit  Ascending  Descending": "Datum/Zeit", "Menge  Ascending  Descending": "Menge", "Rabatt  Ascending  Descending": "Rabatt", "Bezahlt  Ascending  Descending": "Bezahlt"})
-    print(table)
     table['Bezahlt'] = table['Bezahlt'].str.replace('€', '')
     table['Bezahlt'] = table['Bezahlt'].str.replace(',', '.')
     table['Bezahlt'] = table['Bezahlt'].astype(float)
@@ -12,13 +13,13 @@ def cleanupTableNamesAndValues(table):
     return table
 
 
-def getTableFromWebsite(userID, sessionCookie):
+def getTableFromWebsite(session, userID):
     table = None
     i = 0
+    print("fetching", end='', flush=True)
     while True:
-        print(f"fetch site {i}")
-        response = requests.get(url=f"https://campuscard.stw.uni-heidelberg.de/user/transaction/list?accountId={userID}&currentPage={i}", 
-                                cookies={"JSESSIONID" : sessionCookie, "Accept-Language": "de-DE"})
+        print('.', end='', flush=True)
+        response = session.get(f"https://campuscard.stw.uni-heidelberg.de/user/transaction/list?accountId={userID}&currentPage={i}")
         # ToDo: if you don't have the website set to german it won't work
         if response.headers['Content-Language'] != 'de-DE': raise ConnectionError("website is not in german - please log in and change")
         all_tables = pandas.read_html(response.text)    # needs a catch for no table
@@ -26,7 +27,20 @@ def getTableFromWebsite(userID, sessionCookie):
         if i == 0: table = all_tables[0]
         else: table = pandas.concat([table, all_tables[0]], ignore_index=True)
         i += 1
+    print('')
     return cleanupTableNamesAndValues(table)
+
+
+def login(userName, password):
+    session = requests.Session()
+    session.auth = (userName, password)
+    response = session.get("https://campuscard.stw.uni-heidelberg.de")
+    userID = re.search(r'id=(.*?)&locale=', response.url).group(1)
+    return session, userID
+
+
+def logout(session):
+    session.get("https://campuscard.stw.uni-heidelberg.de/j_spring_security_logout")
 
 
 def getTableFromFile(path = "output.csv"):
@@ -55,14 +69,16 @@ def main():
     parser = argparse.ArgumentParser(
                     prog='Campuscard Statistics',
                     description='Scrapes the website and calculates some Statistics about your mensa behaviour.')
-    parser.add_argument('-u', '--userID', required=True)
-    parser.add_argument('-c', '--sessionCookie', required=True)
+    parser.add_argument('-u', '--userName', required=True)
+    parser.add_argument('-p', '--password', required=True)
     args = parser.parse_args()
 
-    table = getTableFromWebsite(args.userID, args.sessionCookie)
+    session, userID = login(args.userName, args.password)
+    table = getTableFromWebsite(session, userID)
     #table = getTableFromFile()
     calculateStatistics(table)
+    logout(session)
 
 
 if __name__ == "__main__":
-   main()
+    main()
