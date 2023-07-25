@@ -2,6 +2,7 @@ import argparse
 import requests
 import pandas
 import re
+import getpass
 
 
 def cleanupTableNamesAndValues(table):
@@ -35,6 +36,8 @@ def login(userName, password):
     session = requests.Session()
     session.auth = (userName, password)
     response = session.get("https://campuscard.stw.uni-heidelberg.de")
+    if response.status_code != 200:
+        raise ConnectionError("Username or Password is wrong!")
     userID = re.search(r'id=(.*?)&locale=', response.url).group(1)
     return session, userID
 
@@ -65,19 +68,38 @@ def calculateStatistics(table):
     print(f"times recharged: {times_recharged}")
 
 
+def fetch(should_save):
+    userName = input("Username: ")
+    password = getpass.getpass("Password: ")
+    session, userID = login(userName, password)
+    table = getTableFromWebsite(session, userID)
+    calculateStatistics(table)
+    if should_save:
+        saveTableToFile(table)
+    logout(session)
+
+
+def load():
+    table = getTableFromFile()
+    calculateStatistics(table)
+
+
 def main():
     parser = argparse.ArgumentParser(
                     prog='Campuscard Statistics',
-                    description='Scrapes the website and calculates some Statistics about your mensa behaviour.')
-    parser.add_argument('-u', '--userName', required=True)
-    parser.add_argument('-p', '--password', required=True)
+                    description='Scrapes the website and calculates some statistics about your mensa behaviour.')
+    parser.add_argument("function", 
+                        choices=["fetch", "load"], 
+                        help="fetch data from the website or load old data from storage")
+    parser.add_argument('-s', '--save',
+                    action='store_true',
+                    help="set if fetch should save the data to the local storage")
     args = parser.parse_args()
-
-    session, userID = login(args.userName, args.password)
-    table = getTableFromWebsite(session, userID)
-    #table = getTableFromFile()
-    calculateStatistics(table)
-    logout(session)
+    
+    if args.function == "fetch":
+        fetch(args.save)
+    elif args.function == "load":
+        load()
 
 
 if __name__ == "__main__":
