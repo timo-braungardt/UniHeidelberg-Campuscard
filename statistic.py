@@ -49,13 +49,18 @@ def getSectors(table, sum_overall = 0):
 
 
 def calculateStatistics(table):
-    print("======== Statistics ========")
+    
     money_spent = overallSpent(table)
-    print(f"overall spent: {money_spent:.2f}€")
-
     times_recharged = timesRecharged(table)
+    sectors = getSectors(table, money_spent)
+    max_buffet = table.loc[table['Produkt'] == 'Kasse', 'Bezahlt'].min()
+
+    # printing
+    print("======== Statistics ========")
+    print(f"overall spent: {money_spent:.2f}€")
     print(f"times recharged: {times_recharged}")
     print('')
-    print(getSectors(table, money_spent).to_string(index=False))
+    print(sectors.to_string(index=False))
     print('')
+    print(f'highscore at buffet: {max_buffet:.2f}€')
     print(f"days used: {(table.iloc[0]['Datum/Zeit'] - table.iloc[-1]['Datum/Zeit']).days}")
