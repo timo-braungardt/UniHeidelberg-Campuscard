@@ -29,7 +29,7 @@ def getTableFromWebsite(session, userID):
         if i == 0: table = all_tables[0]
         else: table = pandas.concat([table, all_tables[0]], ignore_index=True)
         i += 1
-    print('')
+    print('\n')
     return cleanupTableNamesAndValues(table)
 
 
