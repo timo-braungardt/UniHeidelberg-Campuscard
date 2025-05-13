@@ -18,15 +18,16 @@ def timesRecharged(table):
 
 
 def getSectors(table, sum_overall = 0):
-    table = table.drop(columns=['Datum/Zeit', 'Betrag', 'Privileg', 'Rabatt', 'Karte/ID', 'Status'])
+    table = table.drop(columns=['Datum/Zeit', 'Rabatt', 'Karte/ID'])
     # rename entries
-    table['Produkt'].replace({'Trocknen open price': 'wash',
+    print()
+    table['Produkt'] = table['Produkt'].replace({'Trocknen open price': 'wash',
                          'Waschen': 'wash', 
                          'Trocknen': 'wash', 
                          'Kasse': 'buffet',
                          'Mensa to Go': 'counter_food',
                          'Essen Drehkreuz': 'counter_food',
-                         'A4 schwarz/weiss': 'print'}, inplace=True)
+                         'A4 schwarz/weiss': 'print'})
     
     result = pandas.DataFrame(columns=['service', 'times', 'paid'])
     result.loc[len(result)] = ['wash',
@@ -43,7 +44,7 @@ def getSectors(table, sum_overall = 0):
                                table.loc[table['Produkt'] == 'print', 'Bezahlt'].sum()]
     sum_rest = sum_overall + result['paid'].sum()
     result.loc[len(result)] = ['other',
-                               -1,
+                               'x',
                                -sum_rest]
     return result
 

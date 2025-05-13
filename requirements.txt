@@ -3,3 +3,4 @@ pandas
 html5lib
 argparse
 lxml
+io

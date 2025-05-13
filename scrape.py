@@ -4,6 +4,7 @@ import pandas
 import re
 import getpass
 import statistic
+import io
 
 
 def cleanupTableNamesAndValues(table):
@@ -24,7 +25,7 @@ def getTableFromWebsite(session, userID):
         response = session.get(f"https://campuscard.stw.uni-heidelberg.de/user/transaction/list?accountId={userID}&currentPage={i}")
         # ToDo: if you don't have the website set to german it won't work
         if response.headers['Content-Language'] != 'de-DE': raise ConnectionError("website is not in german - please log in and change")
-        all_tables = pandas.read_html(response.text)    # needs a catch for no table
+        all_tables = pandas.read_html(io.StringIO(response.text))    # needs a catch for no table
         if all_tables[0].empty: break
         if i == 0: table = all_tables[0]
         else: table = pandas.concat([table, all_tables[0]], ignore_index=True)
