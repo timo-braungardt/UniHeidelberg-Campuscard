@@ -5,6 +5,7 @@ import re
 import getpass
 import statistic
 import io
+from lxml import html
 
 
 def cleanupTableNamesAndValues(table):
@@ -34,6 +35,14 @@ def getTableFromWebsite(session, userID):
     return cleanupTableNamesAndValues(table)
 
 
+def getCurrentBalance(session, userID):
+    response = session.get(f"https://campuscard.stw.uni-heidelberg.de/user/account/details?id={userID}")
+    tree = html.fromstring(response.text)
+    balance = tree.xpath('/html/body/div[2]/div[2]/div[2]/div/label/text()')
+    balance = re.search(r'[\d|\.|\,]+', balance[0])
+    return balance.group(0).replace(',', '.')
+
+    
 def login(userName, password):
     session = requests.Session()
     session.auth = (userName, password)
@@ -66,6 +75,8 @@ def fetch(should_save):
     statistic.calculateStatistics(table)
     if should_save:
         saveTableToFile(table)
+    balance = getCurrentBalance(session, userID)
+    print(f"current balance: {balance}€")
     logout(session)
 
 
