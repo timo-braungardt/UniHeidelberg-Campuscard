@@ -99,12 +99,20 @@ def load():
     statistic.calculateStatistics(table)
 
 
+def balance():
+    userName, password = getLogin()
+    session, userID = login(userName, password)
+    balance = getCurrentBalance(session, userID)
+    print(f"{balance}")
+    logout(session)
+
+
 def main():
     parser = argparse.ArgumentParser(
                     prog='Campuscard Statistics',
                     description='Scrapes the website and calculates some statistics about your mensa behaviour.')
     parser.add_argument("function", 
-                        choices=["fetch", "load"], 
+                        choices=["fetch", "load", "balance"], 
                         help="fetch data from the website or load old data from storage")
     parser.add_argument('-s', '--save',
                     action='store_true',
@@ -115,6 +123,8 @@ def main():
         fetch(args.save)
     elif args.function == "load":
         load()
+    elif args.function == "balance":
+        balance()
 
 
 if __name__ == "__main__":
