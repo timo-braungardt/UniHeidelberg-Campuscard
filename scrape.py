@@ -6,6 +6,8 @@ import getpass
 import statistic
 import io
 from lxml import html
+from pykeepass import PyKeePass
+PATH_TO_KEEPASS_FILE = ""
 
 
 def cleanupTableNamesAndValues(table):
@@ -42,6 +44,19 @@ def getCurrentBalance(session, userID):
     balance = re.search(r'[\d|\.|\,]+', balance[0])
     return balance.group(0).replace(',', '.')
 
+
+def getLogin():
+    if PATH_TO_KEEPASS_FILE != "":
+        keepassPW = getpass.getpass("Keepass Password: ")
+        kp = PyKeePass(PATH_TO_KEEPASS_FILE, password=keepassPW)
+        entry = kp.find_entries(url="https://campuscard.stw.uni-heidelberg.de/", first=True)
+        return entry.username, entry.password
+    else:
+        userName = input("Username: ")
+        password = getpass.getpass("Password: ")
+        return userName, password
+
+
     
 def login(userName, password):
     session = requests.Session()
@@ -68,8 +83,7 @@ def saveTableToFile(table, path = "output.csv"):
 
 
 def fetch(should_save):
-    userName = input("Username: ")
-    password = getpass.getpass("Password: ")
+    userName, password = getLogin()
     session, userID = login(userName, password)
     table = getTableFromWebsite(session, userID)
     statistic.calculateStatistics(table)
