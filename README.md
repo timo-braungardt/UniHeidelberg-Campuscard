@@ -12,6 +12,12 @@ The script can also use your keepass file so you dont need to recall your passwo
 Simply fill in the `PATH_TO_KEEPASS_FILE` path variable with the global path.
 It will search for a entry with the url `https://campuscard.stw.uni-heidelberg.de/`.
 
+> [!INFO]
+> At the moment the cert chain has to be manually kept up to date.
+
+The file `campuscard-stw-uni-heidelberg-de-chain.pem` contains the cain of certificates of the website.
+The current certificate is valid until 06.04.2027.
+
 ## Usage
 To get the current balance of your card, run
 ```

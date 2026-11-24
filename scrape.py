@@ -5,6 +5,7 @@ import re
 import getpass
 import statistic
 import io
+import os
 from lxml import html
 from pykeepass import PyKeePass
 PATH_TO_KEEPASS_FILE = ""
@@ -60,6 +61,8 @@ def getLogin():
     
 def login(userName, password):
     session = requests.Session()
+    path = os.path.dirname(os.path.abspath(__file__))
+    session.verify = f"{path}/campuscard-stw-uni-heidelberg-de-chain.pem"
     session.auth = (userName, password)
     response = session.get("https://campuscard.stw.uni-heidelberg.de")
     if response.status_code != 200:
